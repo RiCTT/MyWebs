@@ -1,3 +1,17 @@
+
+# 我的网站
+
+## 初步计划
+
+  个人的网站主页，参考http://zhangwenli.com/ 用来展示个人demo，项目、信息等
+
+## 项目计划
+
+  - 1、投掷硬币 
+  - 2、小游戏
+  - 3、canvas例子
+  - 4、bs学习记录
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
