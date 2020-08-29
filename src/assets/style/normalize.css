@@ -36,7 +36,7 @@
  * Remove the margin in all browsers.
  */
 
-body {
+body, h3 {
   margin: 0;
 }
 
