@@ -15,7 +15,7 @@ function genID(length = 10){
   return Number(Math.random().toString().substr(3,length) + Date.now()).toString(36);
 }
 
-// 获取列表
+// todo：算法可以再优化，目前是一个for循环的递归调用
 export function getCatalogList() {
   const list = getStore(CatelogKey)
   const result = []
@@ -34,6 +34,9 @@ export function getCatalogList() {
       })
       delete item.catalogIds
       item.children = children
+      item.children = item.children.map(child => {
+        return traverse(child, list)
+      })
     }
     return item
   }
@@ -46,27 +49,25 @@ export function getCatalogList() {
 }
 
 // 新增目录
-export function insertCatalog({ parentId, rootId, catalogName }) {
+export function insertCatalog({ parentId, rootId, id, catalogName }) {
   const list = getStore(CatelogKey)
-  const id = genID()
-  
-  if (parentId) {
+  const newId = genID()
+  if (id) {
     // update父节点的catalogIds记录
-    const index = list.findIndex(item => item.id === parentId)
+    const index = list.findIndex(item => item.id === id)
     const item = list[index]
-    if (item.catalogId) {
-      item.catalogIds += ',' + id
+    if (item.catalogIds) {
+      item.catalogIds += ',' + newId
     } else {
-      item.catalogIds = id
+      item.catalogIds = newId
     }
     list[index] = item
   }
 
   list.push({
-    id,
-    parentId: parentId || id,
-    rootId: rootId || id,
-    childs: '',
+    id: newId,
+    parentId: id || newId,
+    rootId: rootId || newId,
     catalogName,
     createdTime: new Date(),
     updatedTime: new Date()

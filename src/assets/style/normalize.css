@@ -29,6 +29,12 @@
   -webkit-text-size-adjust: 100%; /* 2 */
 }
 
+li, ol, ul {
+  list-style: none;
+}
+ol, ul {
+  padding: 0;
+}
 /* Sections
    ========================================================================== */
 

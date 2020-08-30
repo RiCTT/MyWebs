@@ -3,7 +3,8 @@ import { Wrapper, Left, Right, DialogForm, ButtonWrapper } from './style'
 import SvgIcon from '@/components/SvgIcon'
 import MyButton from '@/components/MyButton'
 import MyDialog from '@/components/MyDialog'
-import Catalog from './Catalog'
+import BraftEditor from '@/components/BraftEditor'
+import Catalog from './Catalog/Catalog'
 import { insertCatalog, getCatalogList } from 'api/blog'
 
 function Blog () {
@@ -12,13 +13,14 @@ function Blog () {
   const [catalogData, setCatalogData] = useState([])
   const [clickItem, setClickItem] = useState(null)
 
-  const handleClick = (item) => {
-    if (item.catalogName) {
-      setClickItem(item)
-    } else {
-      setClickItem({})
-    }
+  const handleDialogStatus = () => {
     setVisible(!visible)
+  }
+
+  const handleAddCatalog = (item) => {
+    const data = item.catalogName ? item : {}
+    setClickItem(data)
+    handleDialogStatus()
   }
 
   const handleInputChange = (e) => {
@@ -28,8 +30,8 @@ function Blog () {
 
   const handleSave = (e) => {
     insertCatalog({
-      catalogName,
-      ...clickItem
+      ...clickItem,
+      catalogName
     })
     setClickItem(null)
     setCatalogName('')
@@ -48,23 +50,32 @@ function Blog () {
           <SvgIcon iconClass="cat"/>
         </div>
         <div className="btn-wrapper">
-          <MyButton onClick={handleClick}>
+          <MyButton onClick={handleAddCatalog}>
             <SvgIcon iconClass="cat"/>
             <span className="catalog">创建目录</span>
           </MyButton>
+          <div>
+            <MyButton onClick={handleAddCatalog}>
+              <SvgIcon iconClass="folder"/>
+              <span className="catalog">新建博客</span>
+            </MyButton>
+          </div>
           <MyDialog visible={visible} title="请输入目录名称" onClose={() => setVisible(false)}>
             <DialogForm>
+              {clickItem && clickItem.catalogName ? <label>当前目录为：{clickItem.catalogName}</label> : null}
               <input value={catalogName} onChange={handleInputChange} />
               <ButtonWrapper>
-                <MyButton className="dialog-btn" onClick={handleClick}>取 消</MyButton>
+                <MyButton className="dialog-btn" onClick={handleDialogStatus}>取 消</MyButton>
                 <MyButton className="dialog-btn" onClick={handleSave}>保 存</MyButton>
               </ButtonWrapper>
             </DialogForm>
           </MyDialog>
-          <Catalog data={catalogData} onClick={handleClick} />
+          <Catalog data={catalogData} onClick={handleAddCatalog} />
         </div>
       </Left>
-      <Right></Right>
+      <Right>
+        <BraftEditor />
+      </Right>
     </Wrapper>
   )
 }

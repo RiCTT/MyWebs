@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Body from './Body/body'
+import Body from './Body/body.js'
 import { Wrapper } from './style'
 
 function Index () {
