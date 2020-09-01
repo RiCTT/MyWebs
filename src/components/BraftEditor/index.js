@@ -1,7 +1,7 @@
 import 'braft-editor/dist/index.css'
 import React from 'react'
 import BraftEditor from 'braft-editor'
-
+import { Wrapper } from './style'
 export default class PageDemo extends React.Component {
 
   state = {
@@ -10,7 +10,9 @@ export default class PageDemo extends React.Component {
 
   render () {
     return (
-      <BraftEditor value={this.state.editorState} onChange={this.handleChange}/>
+      <Wrapper>
+        <BraftEditor value={this.state.editorState} onChange={this.handleChange}/>
+      </Wrapper>
     )
   }
 

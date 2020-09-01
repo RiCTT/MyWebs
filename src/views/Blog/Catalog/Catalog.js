@@ -3,15 +3,19 @@ import SvgIcon from '@/components/SvgIcon'
 import { Wrapper } from './style'
 // 目录组件
 function Catalog (props) {
-
   let { data = [], onClick, nested } = props
-  const [childExpand, setChildExpand] = useState(false)
-  
+  const [expandList, setExpandList] = useState([])
 
-  const handleClickExpand = (e, item) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setChildExpand(!childExpand)
+  const handleAddExpandItem = (id) => {
+    let data = expandList.concat(id)
+    setExpandList(data)
+  }
+  const handleRemoveExpandItem = (id) => {
+    let index = expandList.findIndex(item => item === id)
+    if (index === -1) return
+    let data = [...expandList]
+    data.splice(index, 1)
+    setExpandList(data)
   }
 
   return (
@@ -19,12 +23,18 @@ function Catalog (props) {
        <ul>
          {data.map(item => {
            const baseContent = (
-             <li key={item.id} className="catalog-item" onClick={e => e.stopPropagation()}>
-              <SvgIcon iconClass="expand" onClick={(e) => handleClickExpand(e, item)} />
+             <li key={item.id} className="catalog-item">
+              {
+                expandList.includes(item.id) ? 
+                <SvgIcon iconClass="expanded" onClick={(e) => handleRemoveExpandItem(item.id)} />
+                :
+                <SvgIcon iconClass="expand" onClick={(e) => handleAddExpandItem(item.id)} />
+              }
+              <SvgIcon iconClass="folder" />
                <span onClick={() => onClick(item)}>{item.catalogName}</span>
              </li>
            )
-           if (item.children && item.children.length && childExpand) {
+           if (item.children && item.children.length && expandList.includes(item.id)) {
             return (
                 <Fragment key={item.id}>
                   {baseContent}
@@ -32,12 +42,7 @@ function Catalog (props) {
                 </Fragment>
               )
             } else {
-              // return baseContent              
-              return (
-                <Fragment key={item.id}>
-                  {baseContent}
-                </Fragment>
-              )
+              return baseContent
             }
          })}
        </ul>

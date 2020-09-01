@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Wrapper, Left, Right, DialogForm, ButtonWrapper } from './style'
+import { Wrapper, Left, Right, DialogForm, ButtonWrapper, Title } from './style'
 import SvgIcon from '@/components/SvgIcon'
 import MyButton from '@/components/MyButton'
 import MyDialog from '@/components/MyDialog'
@@ -74,6 +74,13 @@ function Blog () {
         </div>
       </Left>
       <Right>
+        <Title>
+          <label className="title-label">博客标题</label>
+          <input className="title-input" />
+          <MyButton onClick={handleAddCatalog}>
+            保存
+          </MyButton>
+        </Title>
         <BraftEditor />
       </Right>
     </Wrapper>

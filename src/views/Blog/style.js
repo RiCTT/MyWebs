@@ -31,9 +31,29 @@ export const Left = styled.div`
 
 export const Right = styled.div`
   margin-left: 300px;
-  width: 100%;
+  min-width: 600px;
   height: 100%;
   background-color: #e4e0e0;
+`
+
+export const Title = styled.div`
+  position: relative;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  .title-label {
+    font-size: 14px;
+    color: #666;
+  }
+  .title-input {
+    margin: 0 10px;
+  }
+  .btn {
+    position: absolute;
+    right: 10px;
+  }
 `
 
 export const DialogForm = styled.div`
