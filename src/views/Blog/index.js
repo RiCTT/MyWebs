@@ -45,7 +45,6 @@ function Blog () {
    const data = getCatalogList()
    setCatalogData(data)
    const d = formatData(data, 'catalogName', 'id')
-   console.log(d)
    setOptions(d)
   }, [])
 

@@ -5,8 +5,9 @@ import { CSSTransition } from 'react-transition-group'
 
 // 级联选择器
 function MyCascader(props) {
-  const { data = [], onChange } = props
-  const [list, setList] = useState([data])
+  let { data, onChange } = props
+  data = [[...data]]
+  const [list, setList] = useState([])
   const [visible, setVisible] = useState(false)
   const [label, setLabel] = useState([])
   const [catalog, setCatalog] = useState('')
@@ -31,7 +32,9 @@ function MyCascader(props) {
   }
   useEffect(() => {
     if (!visible) {
-      setList([list[0]])
+      setList([data[0]])
+    } else {
+      setList(data)
     }
   // eslint-disable-next-line
   }, [visible])
