@@ -14,20 +14,33 @@ async function getList(page) {
   return result
 }
 
+function formatHeaders (headers) {
+  return Object.keys(headers).reduce((header, name) => {
+      header[String(name).toLowerCase()] = headers[name]
+      return header
+  }, {})
+}
+
 function download(requestUrl, fileName) {
   const stream = fs.createWriteStream('./mp3/' + fileName)
   
-  request(requestUrl, function (err, resp, body) {
-    console.log(err)
-    console.log(resp)
-    console.log(body)
+  let responseHeaders = ''
+  let fileLength = ''
+  request(requestUrl, function(err, res) {
+    responseHeaders = formatHeaders(res.headers)
+    fileLength = Number(responseHeaders['content-length'])
+    if (err) {
+      console.log(res)
+      console.log(fileName)
+      throw err
+    }
   })
     .pipe(stream)
-    .on('close', function(err) {
-      if (err) {
-        console.log(fileName + '下载失败！！！！')
-      } else {
+    .on('finish', function(err) {
+      if (fileLength === stream.bytesWritten) {
         console.log(fileName + '下载成功')
+      } else {
+        console.log(fileName + '下载失败！！！！')
       }
   })
 }
@@ -55,7 +68,6 @@ function download(requestUrl, fileName) {
 // }
 
 async function goDetailPageAndDownload(page, hrefList) {
-  hrefList = [hrefList[0]]
   for (let i = 0; i < hrefList.length; i++) {
     await page.goto(hrefList[i], {
       timeout: 0

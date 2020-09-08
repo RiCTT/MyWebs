@@ -42,13 +42,17 @@ export const Title = styled.div`
   margin-left: 10px;
   display: flex;
   align-items: center;
-  height: 40px;
+  height: 35px;
   .title-label {
     font-size: 14px;
     color: #666;
   }
   .title-input {
     margin: 0 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: none;
+    outline: none;
   }
   .btn {
     position: absolute;

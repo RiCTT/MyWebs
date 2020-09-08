@@ -6,12 +6,15 @@ import MyDialog from '@/components/MyDialog'
 import BraftEditor from '@/components/BraftEditor'
 import Catalog from './Catalog/Catalog'
 import { insertCatalog, getCatalogList } from 'api/blog'
+import MyCascader from '@/components/MyCascader'
+import formatData from '@/common/utils/formatData'
 
 function Blog () {
   const [visible, setVisible] = useState(false)
   const [catalogName, setCatalogName] = useState('') 
   const [catalogData, setCatalogData] = useState([])
   const [clickItem, setClickItem] = useState(null)
+  const [options, setOptions] = useState([])
 
   const handleDialogStatus = () => {
     setVisible(!visible)
@@ -40,7 +43,10 @@ function Blog () {
 
   useEffect(() => {
    const data = getCatalogList()
-   setCatalogData(data) 
+   setCatalogData(data)
+   const d = formatData(data, 'catalogName', 'id')
+   console.log(d)
+   setOptions(d)
   }, [])
 
   return (
@@ -75,6 +81,7 @@ function Blog () {
       </Left>
       <Right>
         <Title>
+          <MyCascader data={options} />
           <label className="title-label">博客标题</label>
           <input className="title-input" />
           <MyButton onClick={handleAddCatalog}>
