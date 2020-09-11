@@ -7,17 +7,16 @@ function setStore(key, value) {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
-const CatelogKey = 'xxxxx-2020-catalog'
-const DailyKey = 'xxxxx-2020-daily'
-
+const CatalogKey = 'xxxxx-2020-catalog'
+const BlogKey = 'xxxxx-2020-blog'
 
 function genID(length = 10){
   return Number(Math.random().toString().substr(3,length) + Date.now()).toString(36);
 }
 
 // todo：算法可以再优化，目前是一个for循环的递归调用
-export function getCatalogList() {
-  const list = getStore(CatelogKey)
+export function getCatalogListSorted() {
+  const list = getStore(CatalogKey)
   const result = []
   function traverse(item, list) {
     if (item.catalogIds && item.catalogIds.split(',').length) {
@@ -48,9 +47,15 @@ export function getCatalogList() {
   return result
 }
 
+// 获取目录列表，没有整理、排序过的
+export function getCatalogList() {
+  const list = getStore(CatalogKey)
+  return list
+}
+
 // 新增目录
 export function insertCatalog({ parentId, rootId, id, catalogName }) {
-  const list = getStore(CatelogKey)
+  const list = getStore(CatalogKey)
   const newId = genID()
   if (id) {
     // update父节点的catalogIds记录
@@ -69,22 +74,60 @@ export function insertCatalog({ parentId, rootId, id, catalogName }) {
     parentId: id || newId,
     rootId: rootId || newId,
     catalogName,
+    blogIds: '', // 对应博客列表的ids，需要异步去获取
+    blogs: [], // 对应博客列表
     createdTime: new Date(),
     updatedTime: new Date()
   })
-  setStore(CatelogKey, list)
+  setStore(CatalogKey, list)
 }
 
+// 更新目录
+export function updateCatalog({ id, blogId }) {
+  const list = getStore(CatalogKey)
+  let catalogList = getCatalogList()
+  let targetCatalogIndex = catalogList.findIndex(item => item.id === id)
+  if (targetCatalogIndex === -1) {
+    return console.error('没有找到对应id的目录!')
+  }
+  let current = list[targetCatalogIndex]
+  if (!current.blogIds) {
+    current.blogIds = ''
+  }
+  current = {
+    ...current,
+    blogIds: current.blogIds.split(',').concat(blogId).join(',').slice(1)
+  }
+  list[targetCatalogIndex] = current
+  setStore(CatalogKey, list)
+  return list[targetCatalogIndex]
+} 
+
 // 新增日记
-export function insertDaily(catalogId, { content, title }) {
-  const list = getStore(DailyKey)
+export function insertBlog({ catalogId, content, title }) {
+  const list = getStore(BlogKey)
+  let catalogList = getCatalogList()
+  let targetCatalog = catalogList.find(item => item.id === catalogId)
+  if (!targetCatalog) {
+    return console.error('没有找到对应id的目录!')
+  }
+  const id = genID(12)
+  updateCatalog({ id: catalogId, blogId: id })
   list.push({
-    id: genID(12),
+    id,
     catalogId,
     content,
     title,
     createdTime: new Date(),
     updatedTime: new Date()
   })
-  setStore(DailyKey, list)
+  setStore(BlogKey, list)
+}
+
+// 获取列表byids
+export function getBlogByIds(ids) {
+  const list = getStore(BlogKey)
+  return list.filter(item => {
+    return ids.indexOf(item.id) > -1
+  })
 }

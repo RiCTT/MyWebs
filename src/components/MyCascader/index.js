@@ -3,6 +3,13 @@ import Item from './Item'
 import { Wrapper, InnerWrapper } from './style'
 import { CSSTransition } from 'react-transition-group'
 
+/**
+ * Todo
+ *  1.数据回显，input框回显对应选中的文本
+ *    需要修改一下数据格式，存入的时候写到对应的childIds，rootId，拿到数据的时候根据id去搜索，减少时间
+ *    懒得写了，有时间再补
+ */
+
 // 级联选择器
 function MyCascader(props) {
   let { data, onChange } = props
@@ -10,12 +17,10 @@ function MyCascader(props) {
   const [list, setList] = useState([])
   const [visible, setVisible] = useState(false)
   const [label, setLabel] = useState([])
-  const [catalog, setCatalog] = useState('')
-  const handleChange = () => {
-    onChange && onChange(catalog)
-  }
+  const [catalog, setCatalog] = useState(null)
+ 
   const handleItemClick = (item, index) => {
-    setCatalog(item.value)
+    setCatalog(item)
     if (item.children) {
       let data = list.slice(0, index + 1)
       data.push(item.children)
@@ -39,6 +44,14 @@ function MyCascader(props) {
   // eslint-disable-next-line
   }, [visible])
 
+  useEffect(() => {
+    onChange && catalog && onChange({
+      value: catalog.id,
+      label: catalog.label
+    })
+  // eslint-disable-next-line
+  }, [catalog])
+
   const handleInputFocus = (e) => {
     e.stopPropagation()
     setVisible(!visible)
@@ -50,7 +63,7 @@ function MyCascader(props) {
   }
   return (
     <Wrapper>
-      <input defaultValue={label.join('/')} onChange={handleChange} className="cascader-input"  onClick={handleInputFocus} />
+      <input defaultValue={label.join('/')} className="cascader-input"  onClick={handleInputFocus} />
       <CSSTransition in={visible} timeout={1000} classNames="animate">
         { visible ? 
             <InnerWrapper>
