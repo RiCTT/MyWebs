@@ -12,6 +12,20 @@
   - 3、canvas例子
   - 4、bs学习记录
 
+## 项目进度
+  - 我的博客
+    - v1.0
+      - 功能
+        - 选中目录添加博客
+        - 无限添加的目录
+        - 级联选择器
+        - braftEditor编辑器
+        - 编辑回显
+      - 代办/Todo
+        - 级联选择器根据value回显对应的label
+
+      
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
