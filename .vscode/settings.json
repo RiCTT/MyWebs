@@ -1,3 +1,4 @@
 {
-  "syz.gender": "男"
+  "syz.gender": "男",
+  "git.ignoreLimitWarning": true
 }
