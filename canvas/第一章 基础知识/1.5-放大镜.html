@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: rgba(100, 145, 250, 0.3);
+    }
+    #canvas {
+      margin-left: 20px;
+      margin-right: 0;
+      margin-bottom: 20px;
+      border: thin solid #aaa;
+      cursor: crosshair;
+      padding: 0;
+    }
+    #controls {
+      margin: 20px 0 20px 20px;
+    }
+    #glass {
+      position: absolute;
+      border: 3px solid blue;
+      cursor: crosshair;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <input type="button" id="resetButton" value="Reset">
+    <input type="button" id="donwloadButton" value="Download">
+  </div>
+  <div id="glass"></div>
+  <canvas id="canvas" width="800" height="500"></canvas>
+  <script>
+    // 开始剪切图像的x，y坐标
+    // 剪切图像的宽、高
+    // 绘制的开始x，y坐标
+    // 绘制图像的宽、高大小
+    // drawImage(cX, cY, cW, cH, sX, sY, dW, dH)
+    const canvas = document.querySelector('#canvas')
+    const ctx = canvas.getContext('2d')
+    const canvasRect = canvas.getBoundingClientRect()
+    const glass = document.querySelector('#glass')
+    const downloadBtn = document.querySelector('#donwloadButton')
+    downloadBtn.onclick = function() {
+      let src = canvas.toDataURL()
+      console.log(src)
+      const image = new Image()
+      image.onload = function() {
+        // const canvas = document.createElement('canvas')
+        // const ctx2 = canvas.getContext('2d')
+        // ctx2.drawImage(image, 0, 0)
+      }
+      image.src = src
+      // document.querySelector('#downloadImg').src = src
+    }
+
+    let moving = false
+    let image = new Image()
+    let mousedown = { x: 0, y: 0, left: 0, top: 0, width: 0, height: 0 }
+    // 1、绘制一个选中框
+    //  1.1、根据mousemove设置偏移位置
+    //  1.2、用一个div+border+width做截取框
+    // 2、加载图片
+    function changeGlass() {
+      const { x, y, width, height, left, top } = mousedown
+      const { left: canvasLeft, top: canvasTop, width: canvasWidth, height: canvasHeight } = canvasRect
+      let resultX = left < x ? left : x
+      let resultY = top < y ? top : y
+      // 左右上下边界处理
+      if (resultX <= canvasLeft || resultY <= canvasTop) return
+      if (resultX + width - canvasLeft +  3 >= canvasWidth || resultY + height - canvasTop + 3 >= canvasHeight) return
+      glass.style.width = width + 'px'
+      glass.style.height = height + 'px'
+      glass.style.left = resultX + 'px'
+      glass.style.top = resultY + 'px'
+    }
+    function drawSelectRange() {
+      const { x, y, left, top } = mousedown
+      ctx.drawImage(canvas,
+        x - canvasRect.left,
+        y - canvasRect.top,
+        mousedown.width,
+        mousedown.height,
+        // Math.abs(left - x),  
+        // Math.abs(top - y),
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      )
+    }
+    canvas.onmousedown = function(e) {
+      mousedown.x = e.clientX
+      mousedown.y = e.clientY
+      moving = true
+      showGlass()
+    }
+    window.onmousemove = function(e) {
+      if (!moving) return
+      mousedown.left = e.clientX
+      mousedown.top = e.clientY
+      mousedown.width = Math.abs(e.clientX - mousedown.x)
+      mousedown.height = Math.abs(e.clientY - mousedown.y)
+      changeGlass()
+    }
+    window.onmouseup = function() {
+      moving = false
+      hideGlass()
+      resetGlass()
+      drawSelectRange()
+      mousedown = { x: 0, y: 0, width: 0, height: 0 }
+    }
+    function showGlass() {
+      glass.style.display = 'block'
+    }
+    function hideGlass() {
+      glass.style.display = 'none'
+    }
+    function resetGlass() {
+      glass.style.width = 0
+      glass.style.height = 0
+    }
+
+    image.onload = function() {
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+    }
+    image.src = './images/syz.jpg'
+  </script>
+</body>
+</html>

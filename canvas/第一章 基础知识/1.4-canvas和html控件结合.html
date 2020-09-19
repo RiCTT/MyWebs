@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #ddd;
+    }
+    #canvas {
+      margin-left: 10px;
+      margin-top: 10px;
+      background: #fff;
+      border: thin solid #aaa;
+    }
+    #glasspane {
+      position: absolute;
+      left: 50px;
+      top: 50px;
+      padding: 0 20px 10px;
+      background: rgba(0, 0, 0, .3);
+      color: #eee;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: rgba(0, 0, 0, .5) 5px 5px 20px;
+    }
+    .title {
+      font-weight: normal;
+      font-size: 2em;
+      color: rgba(255, 255, 0, .8);
+    }
+    #glasspane a:hover {
+      color: yellow;
+    }
+    #glasspane a {
+      text-decoration: none;
+      color: #ccc;
+      font-size: 3.5em;
+    }
+    #glasspane p {
+      margin: 10px;
+      color: rgba(65, 65, 220, 1);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="700" height="500"></canvas>
+  <div id="glasspane">
+    <h2 class="title">Bouncing Ball</h2>
+    <p>One hundred balls bouncing.</p>
+    <a href="javascript:void(0)" id="startButton">Start</a>
+  </div>
+  <script>
+    const canvas = document.querySelector('#canvas')
+    const ctx = canvas.getContext('2d')
+    const glasspane = document.querySelector('#glasspane')
+    const btn = document.querySelector('#startButton')
+    let paused = true
+    let aniId = null
+    let useCache = true
+
+    btn.onclick = function () {
+      paused = !paused
+      btn.innerHTML = paused ? 'Start' : 'Stop'
+      if (paused) {
+        cancelAnimationFrame(aniId)
+      } else {
+        aniId = gameStart()
+      }
+    }
+    function Ball() {
+      this.useCache = useCache
+      this.cacheCanvas = document.createElement('canvas')
+      this.cacheCtx = this.cacheCanvas.getContext('2d')
+      this.cacheCanvas.width = canvas.width
+      this.cacheCanvas.height = canvas.height
+
+      this.radius = Math.max(30, Math.floor(Math.random() * 50))
+      this.boundaryValX = canvas.width - this.radius
+      this.boundaryValY = canvas.height - this.radius
+      this.x = Math.max(this.radius, Math.min(Math.random() * canvas.width, this.boundaryValX))
+      this.y = Math.max(this.radius, Math.min(Math.random() * canvas.height, this.boundaryValY))
+      this.bgColor = '#' + String(Math.random() * 16).slice(-6)
+      this.speedY = this.speedX = -Math.max(0.3, Math.floor(Math.random() * 10))
+      this.runing = paused
+      this.run()
+    }
+    Ball.prototype = {
+      run: function () {
+        ctx.beginPath();
+        const { x, y, radius } = this
+        ctx.arc(x, y, radius, 0, Math.PI * 2)
+        ctx.fillStyle = this.bgColor
+        ctx.closePath();
+        ctx.fill()
+        let nextX = this.x + this.speedX
+        let nextY = this.y + this.speedY
+        if (nextX <= this.radius) {
+          this.speedX = Math.abs(this.speedX)
+        }
+        if (nextX >= canvas.width - this.radius) {
+          this.speedX = -this.speedX
+        }
+        if (nextY <= this.radius) {
+          this.speedY = Math.abs(this.speedY)
+        }
+        if (nextY >= canvas.height - this.radius) {
+          this.speedY = -this.speedY
+        }
+        this.x += this.speedX
+        this.y += this.speedY
+      }
+    }
+   
+    let balls = []
+    function generateBall() {
+      for (let i = 0; i < 10; i++) {
+        balls.push(new Ball())
+      }
+    }
+    function gameStart() {
+      if (paused) return
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (let i = 0; i < balls.length; i++) {
+        balls[i].run()
+      }
+      return requestAnimationFrame(() => {
+        gameStart()
+      })
+    }
+    generateBall()
+    aniId = gameStart()
+  </script>
+</body>
+</html>

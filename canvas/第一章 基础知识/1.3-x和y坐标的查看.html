@@ -17,6 +17,7 @@
     const cWidth = canvas.width
     const cHeight = canvas.height
     const spritesheet = new Image()
+    let drawingSurfaceImageData = null
     const windowToCanvas = function (canvas, x, y) {
       //  canvas元素大小跟canvas绘图表面大小的关系，进行了缩放
       const box = canvas.getBoundingClientRect()
@@ -65,13 +66,24 @@
     const updateReadout = function (x, y) {
       readout.innerText = `(${x.toFixed(0)}, ${y.toFixed(0)})`
     }
-    
+    const saveDrawingSurface = function () {
+      drawingSurfaceImageData = ctx.getImageData(0, 0, cWidth, cHeight)
+    }
+    const restoreDrawingSurface = function () {
+      ctx.putImageData(drawingSurfaceImageData, 0, 0)
+    }
     canvas.onmousemove = function (e) {
       const loc = windowToCanvas(canvas, e.clientX, e.clientY)
       drawBackground()
       drawSpriteSheet()
       drawGuideLines(loc.x, loc.y)
       updateReadout(loc.x, loc.y)
+    }
+    canvas.onmousedown = function (e) {
+      saveDrawingSurface()
+    }
+    canvas.onmouseup = function (e) {
+      restoreDrawingSurface()
     }
     spritesheet.src = './images/sprite.png'
     spritesheet.onload = function () {
