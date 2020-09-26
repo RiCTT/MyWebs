@@ -4,6 +4,8 @@
 /node_modules
 /ext/node_modules
 /ext/hello-world/node_modules
+/canvas/code
+
 /.pnp
 .pnp.js
 

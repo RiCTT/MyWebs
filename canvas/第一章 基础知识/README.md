@@ -24,3 +24,9 @@
   - 默认在元素上设置的是canvas的元素和绘制表面大小
   - css中设置的是元素的大小
 ### 9、canvas中涉及脏数据的跨域
+  - 如果canvas中涉及其他orgin等数据，比如baidu.com域名的图片，而且跟当前的域名不一致，那此时的canvas就是一个脏数据
+  - 脏数据不允许getImageData
+  - 不允许toDataUrl等接口
+### 10、处理脏数据的导出等
+  - 设置image的crossOrigin属性
+  - 保持资源同域
