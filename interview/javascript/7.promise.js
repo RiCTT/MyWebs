@@ -57,7 +57,56 @@
       console.log(res)
     })
   * 
+  阶段三：捕获被动触发的异常，支持then第二个函数执行
+    - 如果then第二个函数执行了，catch是不会执行的，除非then第二个错误报错了
+    - 在then应该返回一个promise，不管是onFulfilled/onRejected，支持后面的then/catch
+    - 如果用户主动return了一个promise，应该用自己的promise等待用户的promise完成且执行自己promise的resolve或者reject
+  问题一：如果then里面返回了新的promise，那该怎么处理？
+    - 默认我们自己返回一个promise，如果用户手动返回了promise，那就等待，去调用then，轮询拿到resolve/reject
+    - 再去调用我们自己本身的promise，执行resolve/reject
+    - 达到处理用户的promise，但通过我们自己的promise去响应
+    - 具体代码在resolvePromise这个函数中，这个思路甚是巧妙！
+  案例代码：
+    let p = new MyPromise((resolve, reject) => {
+      // 模拟抛出错误或者根据情况去reject
+      throw Error('wrong')
+      reject('wrong: 1')
+    })
+    p.then(res => {
+      return 1234
+    }, err => {
+      console.log(err)
+      console.log('err1')
+    }).then(res => {
+      console.log(res)
+      console.log(err)
+    }).catch(err => {
+      console.log(err)
+    })
  */
+
+/**
+ * 
+ * @param {*} promise MyPromise内部返回的新实例
+ * @param {*} result then内部返回的值，如果是promise实例
+ * @param {*} resolve 新实例的resolve
+ * @param {*} reject 新实例的reject
+ */
+function resolvePromise(promise, result, resolve, reject) {
+  if (result instanceof MyPromise) {
+    if (result.status === Pending) {
+      result.then(newRes => {
+        resolvePromise(promise, newRes, resolve, reject)
+      }, err => {
+        reject(err)
+      })
+    } else {
+      result.then(resolve, reject)
+    }
+  } else {
+    resolve(result)
+  }
+}
 
 const Fulfilled = 'FulFilled'
 const Rejected = 'Rejected'
@@ -83,30 +132,59 @@ function MyPromise(callback) {
   }
 
   if (callback && typeof callback === 'function') {
-    callback(resolve, reject)
+    // 捕获代码执行的程序错误
+    try {
+      callback(resolve, reject)
+    } catch (err) {
+      reject(err)
+    }
   }
 }
 
-
-MyPromise.prototype.then = function(cb) {
+MyPromise.prototype.then = function(onFulfilled, onRejected) {
+  let promise
   let _this = this
+  onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : (val) => val
+  onRejected = typeof onRejected === 'function' ? onRejected : (err) => { throw err }
+
   if (this.status === Fulfilled) {
-    let p2 = cb(this.value)
-    if (p2 && p2 instanceof MyPromise) return p2
-    let p3 = new MyPromise(resolve => {
-      resolve(p2)
-    })
-    return p3
-  } else {
-    setTimeout(function () {
-      _this.then(cb)
+    promise = new MyPromise((resolve, reject) => {
+      try {
+        let result = onFulfilled(this.value)
+        resolvePromise(promise, result, resolve, reject)
+      } catch (err) {
+        reject(err)
+      }
     })
   }
-}
-
-MyPromise.prototype.catch = function(cb) {
   if (this.status === Rejected) {
-    cb(this.reason)
+    promise = new MyPromise((resolve, reject) => {
+      try {
+        let result = onRejected(this.reason)
+        resolvePromise(promise, result, resolve, reject)
+      } catch (err) {
+        reject(err)
+      }
+    })
   }
+  if (this.status === Pending) {
+    setTimeout(function () {
+      _this.then(onFulfilled, onRejected)
+    })
+  }
+  return promise
 }
 
+MyPromise.prototype.catch = function(onRejected) {
+  return this.then(null, onRejected)
+}
+
+MyPromise.prototype.finally = function(onFinally) {
+  if (this.status !== Pending) {
+    onFinally && onFinally()
+  } else {
+    setTimeout(() => {
+      this.finally(onFinally)
+    })
+  }
+}
