@@ -66,6 +66,8 @@
     - 再去调用我们自己本身的promise，执行resolve/reject
     - 达到处理用户的promise，但通过我们自己的promise去响应
     - 具体代码在resolvePromise这个函数中，这个思路甚是巧妙！
+  问题二：发现了一个问题..之前测试的代码，都没用异步的方式，比如setTimeout，异步才发现原来代码会有问题，pending中会报错
+    - 参考了其他实现，下面重写一般promise，用数组存储callback，在合适的时间遍历执行callback
   案例代码：
     let p = new MyPromise((resolve, reject) => {
       // 模拟抛出错误或者根据情况去reject
@@ -83,6 +85,24 @@
     }).catch(err => {
       console.log(err)
     })
+  阶段四：由阶段三发现了一系列问题
+    1、比如说promise丢了异步代码，直接then/finally会报错等
+    2、不能连续then
+    3、实际上then里面的代码应该是异步执行的，如下
+      var promise = new MyPromise(function (resolve){
+        console.log("inner promise"); // 1
+        resolve(42);
+      });
+      promise.then(function(value){
+        console.log(value); // 3
+      });
+      console.log("outer promise"); // 2
+      实际上我们写的promise是 inner promise -> 42 -> outer promise
+      而真正的promise是 inner promise -> outer promise -> 42
+      why: 
+        promise小册 chapter2.3
+        我们是在then里面去判断status，然后做settimout的，如果已经fulfilled，那then的时候就直接执行了
+        应该是在resolve里面去setTimout执行onFulfilled函数
  */
 
 /**
@@ -188,3 +208,4 @@ MyPromise.prototype.finally = function(onFinally) {
     })
   }
 }
+
