@@ -136,19 +136,27 @@ function MyPromise(callback) {
   this.value = null
   this.reason = null
   this.status = Pending
+  this.onFulfilledCb = []
+  this.onRejectedCb = []
 
   let resolve = (result) => {
     if (this.status === Pending) {
-      this.value = result
-      this.status = Fulfilled
+      setTimeout(() => {
+        this.value = result
+        this.status = Fulfilled
+        this.onFulfilledCb.forEach((cb) => cb(result))
+      })
     }
   }
 
   let reject = (reason) => {
-    if (this.status === Pending) {
-      this.reason = reason
-      this.status = Rejected
-    }
+    setTimeout(() => {
+      if (this.status === Pending) {
+        this.reason = reason
+        this.status = Rejected
+        this.onRejectedCb.forEach((cb) => cb(reason))
+      }
+    })
   }
 
   if (callback && typeof callback === 'function') {
@@ -163,35 +171,46 @@ function MyPromise(callback) {
 
 MyPromise.prototype.then = function(onFulfilled, onRejected) {
   let promise
-  let _this = this
   onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : (val) => val
   onRejected = typeof onRejected === 'function' ? onRejected : (err) => { throw err }
 
-  if (this.status === Fulfilled) {
-    promise = new MyPromise((resolve, reject) => {
+  promise = new MyPromise((resolve , reject) => {
+    if (this.status === Fulfilled) {
       try {
         let result = onFulfilled(this.value)
         resolvePromise(promise, result, resolve, reject)
       } catch (err) {
         reject(err)
       }
-    })
-  }
-  if (this.status === Rejected) {
-    promise = new MyPromise((resolve, reject) => {
+    }
+    if (this.status === Rejected) {
       try {
         let result = onRejected(this.reason)
         resolvePromise(promise, result, resolve, reject)
       } catch (err) {
         reject(err)
       }
-    })
-  }
-  if (this.status === Pending) {
-    setTimeout(function () {
-      _this.then(onFulfilled, onRejected)
-    })
-  }
+    }
+    if (this.status === Pending) {
+      this.onFulfilledCb.push(() => {
+        try {
+          let result = onFulfilled(this.value)
+          resolvePromise(promise, result, resolve, reject)
+        } catch (err) {
+          reject(err)
+        }
+      })
+      this.onRejectedCb.push(() => {
+        try {
+          let result = onRejected(this.reason)
+          resolvePromise(promise, result, resolve, reject)
+        } catch (err) {
+          reject(err)
+        }
+      })
+    }
+  })
+
   return promise
 }
 
@@ -209,3 +228,64 @@ MyPromise.prototype.finally = function(onFinally) {
   }
 }
 
+/**
+ * @param {*} value 可以是一个普通值/primise对象/thenable对象（具有then属性）
+ * [MDN-Resolve] https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
+ */
+MyPromise.resolve = function(value) {
+  if (value instanceof MyPromise) return value
+  if (value && typeof value === "object" && value.hasOwnProperty('then')) {
+    // thenable
+    return new MyPromise((resolve, reject) => {
+      try {
+        value.then((res) => {
+          resolve(res)
+        })
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+  return new MyPromise((resolve, reject) => {
+    resolve(value)
+  })
+}
+
+MyPromise.reject = function(err) {
+  return new MyPromise((resolve, reject) => {
+    reject(err);
+  });
+}
+
+MyPromise.all = function(queue) {
+  return new MyPromise((resolve, reject) => {    
+    // 按照队列的顺序push结果
+    let len = queue.length
+    let result = []
+    
+    for (let i = 0; i < len; i++) {
+      let task = queue[i]
+      task.then(data => {
+        result[i] = data
+        if (result.length === len) {
+          resolve(result);
+        }
+      }, err => {
+        reject(err)
+      })
+    } 
+  })
+}
+
+MyPromise.race = function(queue) {
+  return new MyPromise((resolve, reject) => {
+    for (let i = 0; i < queue.length; i++) {
+      let task = queue[i]
+      task.then(data => {
+        resolve(data)
+      }, err => {
+        reject(err)
+      })
+    }
+  })
+}
