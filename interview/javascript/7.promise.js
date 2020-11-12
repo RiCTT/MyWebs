@@ -1,4 +1,18 @@
 /**
+ * Promise手写心得
+ *  1、把所有任务，不管同步/异步，统一在内部转换当成异步去处理，有利于任务秩序的管理
+ *  2、then链式串行执行（then接着then，一个执行完才接着下一个）——重点关注resolvePromise函数，
+ *    巧妙利用promise的resolve，等到fn1执行后再往下走，fn2也是如此，依次往下
+ *      then(fn1)
+ *      then(fn2)
+ *  3、回调函数是个队列的原因，一开始没有考虑到存在异步任务执行时间很久，比如10s后，这个时候如果then多次
+ *    应该也是要执行多次的（好像不这样涉及的也可以的，但是没有那么清晰）
+ *  4、测试自己的promise
+ *    1.npm i -g promises-aplus-tests
+ *    2.promises-aplus-tests mypromise.js
+ */
+
+/**
  * promise的核心是状态、状态管理
  * 阶段一：实现初步then，能够正常执行异步任务
  * 案例代码：
